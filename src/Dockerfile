@@ -11,9 +11,12 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get -y install --no-install-recommends \
         libfontconfig1=2.11.0-6.7+b1 \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && chown node:node /app -R
 
-COPY package.json package-lock.json ./
+USER node
+
+COPY --chown=node:node package.json package-lock.json ./
 RUN npm install --no-cache --production
 
 FROM base as development
@@ -22,7 +25,7 @@ CMD ["npm", "run", "dev"]
 
 RUN npm install --no-cache --development
 
-COPY . ./
+COPY --chown=node:node . ./
 RUN npm run build
 
 FROM nginx:1.17.8-alpine as production

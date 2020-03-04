@@ -11,7 +11,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY . ./
+COPY package.json package-lock.json ./
+RUN npm install --no-cache
 
-RUN npm install
+COPY . ./
 RUN npm run build

@@ -4,7 +4,7 @@ EXPOSE 5000
 
 CMD ["npm", "start"]
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 WORKDIR /app
 
@@ -18,8 +18,6 @@ RUN npm install --no-cache --production
 
 FROM base as development
 
-ENV NODE_ENV=development
-
 CMD ["npm", "run", "dev"]
 
 RUN npm install --no-cache --development
@@ -27,5 +25,5 @@ RUN npm install --no-cache --development
 COPY . ./
 RUN npm run build
 
-FROM base as production
-COPY --from=development build .
+FROM nginx:1.17.8-alpine as production
+COPY --from=development /app/build /usr/share/nginx/html/

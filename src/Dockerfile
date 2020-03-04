@@ -17,19 +17,21 @@ RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/
     && rm -rf /var/lib/apt/lists/* \
     && chown -R node:node /app /home/node/
 
-USER node
-
 COPY --chown=node:node package.json package-lock.json ./
-RUN --mount=type=cache,target=/home/node/.npm/ npm install --production
+RUN --mount=type=cache,target=/root/.npm/ npm install --production
 
 FROM base as development
 
 CMD ["npm", "run", "dev"]
 
-RUN --mount=type=cache,target=/home/node/.npm/ npm install --development
+RUN --mount=type=cache,target=/root/.npm/ npm install --development
 
 COPY --chown=node:node . ./
 RUN npm run build
 
 FROM nginx:1.17.8-alpine as production
 COPY --from=development /app/build /usr/share/nginx/html/
+
+FROM mesosphere/aws-cli:1.14.5 as s3
+COPY --from=development /app/build /app
+RUN --mount=type=secret,id=aws,target=/root/.aws/credentials aws s3 cp /app s3://bucket
